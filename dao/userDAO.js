@@ -30,9 +30,9 @@ class UserDAO {
         })
     }
 
-    insert (values, ignore = false) {
+   create (values) {
         return new Promise(( resolve, reject ) => {
-            const sql = `INSERT ${ ignore ? 'IGNORE' : '' } INTO user (first_name, last_name, email, password, salt) VALUES (?)`;
+            const sql = `INSERT INTO user (username, email, password) VALUES (?)`;
 
             db.query(sql, [values], (err, result) => {
                 if(err)

@@ -29,4 +29,8 @@ module.exports = class User {
 	static loadByEmail(email) {
 		return  UserDAO.findByEmail(email);
 	}
+
+	static create(username,email,password){
+		return UserDAO.create(username,email,password)
+	}
 }

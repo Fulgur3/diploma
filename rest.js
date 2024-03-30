@@ -5,6 +5,6 @@ const userRouter= require('./routers/userRouter')
 
 module.exports = function(app) {
     // app.use('/api/auth', authRouter);
-    app.use ('/api/user', userRouter);
+    app.use ('/api/users', userRouter);
     // app.get('/*', express.static(`./build`));    
 }

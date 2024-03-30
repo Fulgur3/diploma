@@ -1,5 +1,4 @@
 const db = require('../database/db');
-const User = require ('../models/user')
 
 class UserDAO {
     constructor() {
@@ -13,7 +12,7 @@ class UserDAO {
                 if(err)
                     return reject(err)
 
-                return resolve(new User(...result[0]))
+                return resolve(result[0]);
             })
         })
     }

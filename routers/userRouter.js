@@ -1,9 +1,8 @@
 const express = require('express');
 const User = require ('../models/user');
 const router = express.Router();
+const userController = require('../controller/AuthController')
 
-router.get('/',[],function(req, res){
-    res.json(User.loadById(0))
-});
+router.get('/', [], userController.getUser);
 
 module.exports=router;

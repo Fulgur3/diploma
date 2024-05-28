@@ -87,10 +87,13 @@ export default {
       if (this.formData.email && this.formData.password) {
         const response = await sendRequest('/auth/login', 'POST', {login:this.formData.email, password:this.formData.password});
         if (response.ok) {
+       
           const data = await response.json();
+          console.log(data);  
           localStorage.setItem("Token", data.token);
-          await fetchUser();
-          this.$router.push('/');
+          localStorage.setItem("id",data.user.id);
+         // await fetchUser();
+          this.$router.push('/dashboard');
         } else {
           const errorMessage = await response.text();
           alert(errorMessage);
@@ -103,12 +106,14 @@ export default {
         if (response.ok) {
           const data = await response.json();
           localStorage.setItem("Token", data.token);
-          await fetchUser();
-          this.$router.push('/');
+          localStorage.setItem("id",data.user.id);
+      //    await fetchUser();
+          this.$router.push('/dashboard');
         } else {
           const errorMessage = await response.text();
           alert(errorMessage);
         }
+        
       }
     }
   }

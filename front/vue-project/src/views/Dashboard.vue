@@ -1,101 +1,219 @@
 <template>
     <div class="dashboard">
-      <h1>Dashboard</h1>
+      <div class="user-info">
+      <h2>User Information</h2>
+      <p><strong>Username:</strong> {{ userInfo.username }}</p>
+      <p><strong>Email:</strong> {{ userInfo.email }}</p>
+     </div> 
       <div class="tabs">
-        <button @click="currentTab = 'sessions'" :class="{ active: currentTab === 'sessions' }">Sessions</button>
         <button @click="currentTab = 'quizzes'" :class="{ active: currentTab === 'quizzes' }">Quizzes</button>
-      </div>
+        <button @click="currentTab = 'sessions'" :class="{ active: currentTab === 'sessions' }">Sessions</button>
+      </div>        
+
       <div v-if="currentTab === 'sessions'">
-        <h2>Sessions</h2>
         <ul>
           <li v-for="session in sessions" :key="session.id">
             {{ session.name }}
-            <!-- Add more session details here -->
           </li>
         </ul>
         <button @click="createSession">Create Session</button>
       </div>
       <div v-if="currentTab === 'quizzes'">
-        <h2>Quizzes</h2>
-        <ul>
-          <li v-for="quiz in quizzes" :key="quiz.id">
-            {{ quiz.name }}
-            <button @click="editQuiz(quiz.id)">Edit Quiz</button>
-            <!-- Add more quiz details here -->
-          </li>
-        </ul>
-        <button @click="createQuiz">Create Quiz</button>
-      </div>
-      <div v-if="showQuizForm">
-        <h2>Create Quiz</h2>
-        <form @submit.prevent="submitQuiz">
-          <div>
-            <label for="quizName">Quiz Name:</label>
-            <input type="text" id="quizName" v-model="newQuiz.name" required>
-          </div>
-          <div>
-            <button type="button" @click="addQuestion">Add Question</button>
-          </div>
-          <div v-for="(question, index) in newQuiz.questions" :key="index">
-            <label :for="'question' + index">Question {{ index + 1 }}:</label>
-            <input :id="'question' + index" v-model="question.text" required>
-            <button type="button" @click="editQuestion(index)">Edit</button>
-          </div>
-          <button type="submit">Save Quiz</button>
-        </form>
-      </div>
+      <ul>
+        <li v-for="quiz in quizzes" :key="quiz.id">
+          {{ quiz.title }}
+          <button @click="editQuiz(quiz.id)">Edit Quiz</button>
+          <!-- Add more quiz details here -->
+        </li>
+      </ul>
+      <button @click="createQuiz">Create Quiz</button>
     </div>
-  </template>
+    <div v-if="showQuizForm">
+      <h2>Create Quiz</h2>
+      <form @submit.prevent="submitQuiz">
+        <div>
+          <label for="quizName">Quiz Title:</label>
+          <input type="text" id="quizName" v-model="newQuiz.title" required>
+        </div>
+        <div>
+          <label for="questionTitle">Question Title:</label>
+          <input type="text" id="questionTitle" v-model="newQuestion.title" required>
+        </div>
+        <div>
+          <label for="questionSubtitle">Question Subtitle:</label>
+          <input type="text" id="questionSubtitle" v-model="newQuestion.subtitle" required>
+        </div>
+        <div>
+          <label for="questionType">Question Type:</label>
+          <select id="questionType" v-model="newQuestion.type">
+            <option value="text">Text</option>
+            <option value="simple">Simple Choice</option>
+            <option value="multiple">Multiple Choice</option>
+          </select>
+        </div>
+        <div v-if="newQuestion.type !== 'text'">
+          <div v-for="(option, index) in newQuestion.options" :key="index">
+            <label :for="'option' + index">Option {{ index + 1 }}:</label>
+            <input :id="'option' + index" v-model="option.value">
+            <input type="checkbox" v-model="option.correct"> Correct
+          </div>
+          <div v-for="(option, index) in newQuestion.options" :key="index">
+  <label :for="'optionLabel' + index">Option {{ index + 1 }}:</label>
+  <input :id="'optionLabel' + index" v-model="option.label" required>
+  <label>
+    Correct:
+    <input type="checkbox" v-model="option.correct">
+  </label>
+</div>
+          <button type="button" @click="addOption">Add Option</button>
+        </div>
+        <div v-if="newQuestion.type === 'text'">
+          <label for="questionAnswer">Correct Answer:</label>
+          <input type="text" id="questionAnswer" v-model="newQuestion.answer">
+        </div>
+        <button type="button" @click="addQuestion">Add Question</button>
+        <button type="submit">Save Quiz</button>
+      </form>
+    </div>
+  </div>
+</template>
   
   <script>
+  import Question from '@/components/Question.vue'
+  import { sendRequest } from "@/scripts/request.js";
+  import ModalWindow from '@/components/ModalWindow.vue'
   export default {
+     components:{ModalWindow,Question},
+     
     data() {
       return {
+        userInfo: {
+        username: '',
+        email: '',
+        password: '',
+      },
+      showPassword: false,
         currentTab: 'sessions',
-        sessions: [
-          // Example sessions data
-          { id: 1, name: 'Session 1' },
-          { id: 2, name: 'Session 2' },
-        ],
-        quizzes: [
-          // Example quizzes data
-          { id: 1, name: 'Quiz 1' },
-          { id: 2, name: 'Quiz 2' },
-        ],
+        sessions: [],
+        quizzes: [],
         showQuizForm: false,
-        newQuiz: {
-          name: '',
-          questions: [],
-        },
+        newQuiz: {},
+        newQuestion: {},
+        option: {}
       };
     },
+    mounted(){
+        this.getQuizes();
+        this.getSessions();
+        this.fetchUserInfo();
+    },
     methods: {
-      createSession() {
-        // Implement session creation logic
+       async getSessions(){
+        const response = await sendRequest('/session', 'GET');
+        if (response.ok) {
+           this.sessions=await response.json() 
+        }
+        },
+        async getQuizes(){
+        const response = await sendRequest('/quiz', 'GET');
+        if (response.ok) {
+           this.quizzes=await response.json() 
+        }
+        },
+      createSession() {        
         alert('Create Session functionality');
       },
+
+      async fetchUserInfo() {
+      try {
+        const response = await sendRequest(`/user/${localStorage.getItem("id")}`, 'GET'); // Replace userId with the actual user ID
+        this.userInfo = await response.json();
+      } catch (error) {
+        console.error('Error fetching user information:', error);
+      }  
+    },
+
+    togglePasswordVisibility() {
+      this.showPassword = !this.showPassword;
+    },
+
       createQuiz() {
+        
         this.showQuizForm = true;
+
       },
-      submitQuiz() {
-        // Implement quiz submission logic
-        alert('Quiz Created: ' + JSON.stringify(this.newQuiz));
-        this.showQuizForm = false;
-        this.newQuiz = { name: '', questions: [] };
+
+      async submitQuiz() {
+        {
+        const response = await sendRequest('/quiz', 'POST', {
+      title: this.newQuiz.title,
+      questions: this.newQuiz.questions
+    });
+        if (response.ok) {     
+           await this.getQuizes();
+        } else {
+          const errorMessage = await response.text();
+          alert(errorMessage);
+        }
+    }
       },
-      addQuestion() {
-        this.newQuiz.questions.push({ text: '' });
-      },
+
+      addQuestionForm() {
+      // Show the question form
+      this.showQuestionForm = true;
+    },
+    
+    addOption() {
+    this.newQuestion.options.push({ label: '', value: false });
+    },
+    
+    addQuestion() {
+        if (!this.newQuiz.questions) {
+    this.newQuiz.questions = [];
+  }
+
+  // Prepare answers array
+  let answers = [];
+  if (this.newQuestion.type === 'multiple') {
+    answers = this.newQuestion.options
+      .filter(option => option.correct)
+      .map(option => option.value);
+  } else {
+    answers.push(this.newQuestion.answer);
+  }
+
+  // Add the new question to the quiz
+  this.newQuiz.questions.push({
+    title: this.newQuestion.title,
+    subtitle: this.newQuestion.subtitle,
+    type: this.newQuestion.type,
+    options: this.newQuestion.options || [], // Ensure options array is initialized
+    answers: answers // Store answers as an array
+  });
+
+  console.log(this.newQuiz);
+  // Reset newQuestion for next question
+  this.newQuestion = {
+    title: '',
+    subtitle: '',
+    type: 'text',
+    options: [],
+    answer: ''
+  };
+},
+
       editQuiz(quizId) {
         // Implement quiz editing logic
         alert('Edit Quiz: ' + quizId);
       },
+      
       editQuestion(index) {
         // Implement question editing logic
         alert('Edit Question: ' + index);
       },
     },
   };
+  
   </script>
   
   <style scoped>
@@ -133,6 +251,12 @@
   button {
     margin: 5px;
   }
+  .user-info {
+  margin-bottom: 20px;
+}
+.user-info button {
+  margin-left: 10px;
+}
   
   form div {
     margin: 10px 0;

@@ -5,7 +5,7 @@
   "main": "main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "copy .env dist\\src && tsc",
+    "build": "tsc && copy .env dist\\src",
     "start": "node dist/src/app.js"
   },
   "author": "",

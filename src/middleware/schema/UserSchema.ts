@@ -37,7 +37,7 @@ export const registerSchema = [
 	usernameSchema,
 	emailSchema,
 	passwordSchema(false),
-	// confirmPasswordSchema(false)
+	//confirmPasswordSchema(false)
 ];
 
 export const loginSchema = [

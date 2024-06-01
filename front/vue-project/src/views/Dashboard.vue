@@ -35,7 +35,7 @@
           <label for="quizName">Quiz Title:</label>
           <input type="text" id="quizName" v-model="newQuiz.title" required>
         </div>
-        <div>
+        <!-- <div>
           <label for="questionTitle">Question Title:</label>
           <input type="text" id="questionTitle" v-model="newQuestion.title" required>
         </div>
@@ -50,8 +50,8 @@
             <option value="simple">Simple Choice</option>
             <option value="multiple">Multiple Choice</option>
           </select>
-        </div>
-        <div v-if="newQuestion.type !== 'text'">
+        </div> -->
+        <!-- <div v-if="newQuestion.type !== 'text'">
           <div v-for="(option, index) in newQuestion.options" :key="index">
             <label :for="'option' + index">Option {{ index + 1 }}:</label>
             <input :id="'option' + index" v-model="option.value">
@@ -64,14 +64,14 @@
     Correct:
     <input type="checkbox" v-model="option.correct">
   </label>
-</div>
-          <button type="button" @click="addOption">Add Option</button>
+</div> -->
+          <!-- <button type="button" @click="addOption">Add Option</button>
         </div>
         <div v-if="newQuestion.type === 'text'">
           <label for="questionAnswer">Correct Answer:</label>
           <input type="text" id="questionAnswer" v-model="newQuestion.answer">
         </div>
-        <button type="button" @click="addQuestion">Add Question</button>
+        <button type="button" @click="addQuestion">Add Question</button> -->
         <button type="submit">Save Quiz</button>
       </form>
     </div>
@@ -147,7 +147,6 @@
         {
         const response = await sendRequest('/quiz', 'POST', {
       title: this.newQuiz.title,
-      questions: this.newQuiz.questions
     });
         if (response.ok) {     
            await this.getQuizes();

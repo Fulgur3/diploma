@@ -2,8 +2,18 @@ import { Request, Response } from 'express';
 import { myDataSource } from '../database/app-data-source';
 import { User } from '../entity/User';
 import { instanceToPlain } from 'class-transformer';
+import { Session } from '../entity/Session';
+import { Answer } from '../entity/Answer';
 
 export class UserController {
+    static async getAnswersBySession(req: Request, res: Response) {
+		const user = ((req as any).user as User);
+		const session = ((req as any).session as Session);
+
+		const answers = await myDataSource.getRepository(Answer).findBy({ sessionId: session.id, userId: user.id });
+
+		return res.send(answers);
+	}
 
 	static async getUsers(req: Request, res: Response) {
 		const users = await myDataSource.getRepository(User).find();

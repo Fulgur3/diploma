@@ -8,7 +8,9 @@ export class QuizMiddleware {
 		return async function (req: Request, res: Response, next: NextFunction) {
 			try {
 				const user = await ((req as any).user as User);
+				console.log(user);
 				const quiz = await myDataSource.getRepository(Quiz).findOneByOrFail({ id: +req.params[quizIdName] });
+				console.log(quiz);
 	
 				if (quiz.creatorId !== user.id) {
 					return res.sendStatus(403);

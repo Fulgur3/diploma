@@ -1,7 +1,7 @@
 import * as express from "express"
-
+import { Request, Response, NextFunction } from 'express';
 import { AuthMiddleware } from "../middleware/AuthMiddleware";
-import { questionsSchema, createSchema, updateSchema } from "../middleware/schema/QuizSchema";
+import { createSchema, updateSchema } from "../middleware/schema/QuizSchema";
 
 import { QuizController } from "../controller/QuizController";
 import validateRequestSchema from "../middleware/schema/ValidateRequestSchema";
@@ -11,6 +11,11 @@ import { myDataSource } from "../database/app-data-source";
 import { Quiz } from "../entity/Quiz";
 import { SessionController } from "../controller/SessionController";
 import { SessionMiddleware } from "../middleware/SessionMiddleware";
+import { QuestionMiddleware } from "../middleware/QuestionMiddleware";
+import { answerSchema } from "../middleware/schema/AnswerSchema";
+import { User } from "../entity/User";
+import { Session } from "../entity/Session";
+import { Question } from "../entity/Question";
 
 const router = express.Router();
 
@@ -57,6 +62,31 @@ router.put('/:id',
 	SessionMiddleware.isExist(),
 	SessionMiddleware.hasAccess(),
 	SessionController.updateSession
+);
+
+// post user answer
+router.post('/:session_id/question/:question_id/answer',
+	answerSchema,
+	validateRequestSchema,
+	AuthMiddleware.isAuthorized,
+	SessionMiddleware.isExist('params', 'session_id'),
+	SessionMiddleware.isOpen,
+	QuestionMiddleware.isExist,
+	async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const question = await ((req as any).question as Question);
+			const session = await ((req as any).session as Session);
+
+			if (!session.quiz.questions.some(q => q.id == question.id))
+				throw new Error();
+
+			next();
+        }
+        catch (error) {
+            return res.sendStatus(403);
+        }
+	},
+	SessionController.postUserAnswer
 );
 
 export default router;

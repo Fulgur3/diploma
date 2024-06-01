@@ -5,6 +5,8 @@ import { param } from "express-validator";
 import { updateSchema } from "../middleware/schema/UserSchema";
 import validateRequestSchema from "../middleware/schema/ValidateRequestSchema";
 import { QuizMiddleware } from "../middleware/QuizMiddleware";
+import { UserMiddleware } from "../middleware/UserMiddleware";
+import { SessionMiddleware } from "../middleware/SessionMiddleware";
 
 const router = express.Router();
 
@@ -41,13 +43,11 @@ router.get('/quiz/:quiz_id/answer',
 )
 
 //receive the answers of some person in your quiz.
-router.get('/:id/quiz/:quiz_id/answer',
-    param('id').isInt(),
-    param('quiz_id').isInt(),
-    validateRequestSchema,
-
-    AuthMiddleware.isAuthorized,
-    QuizMiddleware.hasAccess('quiz_id')
+router.get('/:id/session/:session_id/answer',
+    UserMiddleware.isExist,
+    SessionMiddleware.isExist('params', 'session_id'),
+    
+    UserController.getAnswersBySession
 );
 
 export default router;

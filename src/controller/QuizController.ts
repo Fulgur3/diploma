@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { instanceToPlain } from 'class-transformer';
 import { myDataSource } from '../database/app-data-source';
 import { Quiz } from '../entity/Quiz';
+import { User } from '../entity/User';
 
 export class QuizController {
 
@@ -20,8 +21,9 @@ export class QuizController {
 	}
 
 	static async createQuiz(req: Request, res: Response) {
+		const user = await ((req as any).user as User);
 		const { title } = req.body;
-		const quiz = await myDataSource.getRepository(Quiz).create({ title, creatorId: 1 });
+		const quiz = await myDataSource.getRepository(Quiz).create({ title, creatorId: user.id });
 		const results = await myDataSource.getRepository(Quiz).save(quiz);
 	
 		return res.send(instanceToPlain(results));

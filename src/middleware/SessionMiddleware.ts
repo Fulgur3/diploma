@@ -4,10 +4,10 @@ import { User } from '../entity/User';
 import { Session } from '../entity/Session';
 
 export class SessionMiddleware {
-	static isExist(paramLocation = 'param', sessionIdName = 'id') {
+	static isExist(paramLocation = 'params', sessionIdName = 'id') {
 		return async function (req: Request, res: Response, next: NextFunction) {
 			try {
-				const session = await myDataSource.getRepository(Session).findOneByOrFail({ [sessionIdName]: req[paramLocation][sessionIdName] });
+				const session = await myDataSource.getRepository(Session).findOneByOrFail({ id: req[paramLocation][sessionIdName] });
 				
 				(req as any).session = session;
 	
@@ -29,5 +29,14 @@ export class SessionMiddleware {
 
 			next();
 		}
+	}
+
+	static async isOpen(req: Request, res: Response, next: NextFunction) {
+		const session = await ((req as any).session as Session);
+
+		if (!session.isOpen)
+			return res.sendStatus(403);
+
+		next();
 	}
 }

@@ -12,8 +12,8 @@
                 :id="'option-' + option.id" 
                 :name="'question-' + question.id" 
                 :value="option.label" 
-                v-model="answer[question.id]" 
-                v-on:change="e=>handleChange(question.id,option.label)"
+                v-model="answers[question.id]" 
+                
               />
               <label :for="'option-' + option.id">{{ option.label }}</label>
             </div>
@@ -26,7 +26,7 @@
                 :name="'question-' + question.id" 
                 :value="option.label" 
                 :checked="selectedOptions[question.id] && selectedOptions[question.id].includes(option.id)" 
-                @change="updateMultipleSelection(question.id, option.id)" 
+                v-on:change="e=>handleChange(question.id,option.label)"
               />
               <label :for="'option-' + option.id">{{ option.label }}</label>
             </div>
@@ -34,7 +34,7 @@
           <div v-else-if="question.type === 'text'">
             <textarea 
               :name="'question-' + question.id" 
-              v-model="textAnswers[question.id]"
+              v-model="answers[question.id]"
             ></textarea>
           </div>
         </div>
@@ -59,6 +59,22 @@
       this.getSession();
     },
     methods: {
+        handleChange(questionId,answer){
+            if(this.answers[questionId]){
+
+                const index=this.answers[questionId].indexOf(answer);
+                if(index==-1){
+                    this.answers[questionId].push(answer);
+                }
+                else{
+                    this.answers[questionId].splice(index,1);
+                }
+            }
+            else{
+                this.answers[questionId]=[answer];
+            }
+        },
+
       async getSession() {
         const sessionCode = this.$route.params.code;
         try {
@@ -72,42 +88,23 @@
           console.error('Error fetching session data:', error);
         }
       },
-      updateMultipleSelection(questionId, optionId) {
-        if (!this.selectedOptions[questionId]) {
-          this.$set(this.selectedOptions, questionId, []);
-        }
-        const index = this.selectedOptions[questionId].indexOf(optionId);
-        if (index > -1) {
-          this.selectedOptions[questionId].splice(index, 1);
-        } else {
-          this.selectedOptions[questionId].push(optionId);
-        }
+
+       postAnswer(questionId,answer){
+        return sendRequest(`/session/${this.session.id}/question/${questionId}/answer`, 'POST', {answer});
       },
-      async submitAnswers() {
-        const answers = [];
-        for (const questionId in this.selectedOptions) {
-          if (this.selectedOptions.hasOwnProperty(questionId)) {
-            answers.push({
-              questionId: parseInt(questionId),
-              selectedOptions: this.selectedOptions[questionId],
-              textAnswer: this.textAnswers[questionId] || ''
-            });
-            try {
-          const response = await sendRequest(`/session/${this.session.id}/question/${this.question.id}/answer`, 'POST', answer);
-          if (response.ok) {
-            alert('Answers submitted successfully!');
-          } else {
-            console.error('Failed to submit answers');
-          }
-        } catch (error) {
-          console.error('Error submitting answers:', error);
+
+        async submitAnswers() {
+            const self=this;
+            Object.entries(self.answers).forEach(([id,answer])=>{
+                (Array.isArray(answer) ? answer : [answer]).forEach(a => {
+                    // console.log(id);
+                    // console.log(a);
+                     self.postAnswer(id,a);
+                })
+            })
         }
-          }
-        }
-        
-      }
     }
-  };
+};
   </script>
   
   <style scoped>

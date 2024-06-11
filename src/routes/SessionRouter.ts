@@ -38,7 +38,7 @@ router.post('/',
 	AuthMiddleware.isAuthorized,
 
 	body('quizId').notEmpty().isInt().custom(async (quizId) => {
-		try {
+		try {			
 			await myDataSource.getRepository(Quiz).findOneByOrFail({
 				id: quizId
 			});
